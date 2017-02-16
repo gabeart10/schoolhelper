@@ -1,0 +1,89 @@
+#!/usr/bin/env python3
+import skilstak.colors as c
+import math
+
+triangle = {'a': 0,
+        'b': 0,
+        'c': 0,
+        '<a': 0,
+        '<b': 90,
+        '<c': 0
+}
+
+angles = ['<a','<c']
+sides = ['a','b','c']
+
+def error(message):
+    input(c.red + "ERROR:" + message + c.x)
+
+def tryforint(value):
+    try:
+        value = int(value)
+        return value
+    except ValueError:
+        error("Not a number")
+        return False
+
+def set_value():
+    while True:
+        which = input(c.clear + "What value? (A,B,C,<A,<C)").lower().strip()
+        for i in ['a','b','c','<a','<c']:
+            if which == i:
+                value = input(c.clear + 'Input new value of %s\n' % i)
+                value = tryforint(value)
+                if not value:
+                    continue
+                if i.startswith('<') and value > 89:
+                    error('Angle has to be under 90')
+                    continue
+                triangle[i] = value
+            else:
+                error("Not an option!")
+                continue
+        break
+
+def oppandadjofangle(angle):
+    if angle == '<a':
+        return ['b','a']
+    elif angle == '<c':
+        return ['a','b']
+
+def solve_triangle():
+    num_angles = 0
+    num_sides = 0
+    angles_known = []
+    angles_unknown = ['<a','<c']
+    sides_known = []
+    sides_unknown = ['a','b','c']
+    for key,value in triangle.keys():
+        if key.startswith('<'):
+            if value != 0 or value != 90:
+                num_angles += 1
+                angles_known.append(key)
+                angles_unknown.remove(key)
+        else:
+            if value != 0:
+                num_sides += 1
+                sides_known.append(key)
+                sides_unknown.remove(key)
+    if num_angles < 1 or num_sides < 1:
+        if num_sides < 2:
+            error("Need more sides/angles")
+            return False
+    if 'c' in sides_known and triangle['a'] > triangle['c'] or triangle['b'] > triangle['c']:
+        error("Side A or B can't be larger than the Hyp(C)")
+        continue
+    if len(angles_known) + len(sides_known) == 5:
+        break
+    for i in sides_unknown:
+        if sides_known == list(sides).remove(i):
+            if 'c' in sides_known:
+                triangle[i] = math.sqrt(math.pow(triangle['c'],2)-math.pow(triangle[list(sides_known.remove('c').pop(0))],2)
+            else:
+                triangle[i] = math.sqrt(math.pow(triangle['a'],2)+math.pow(triangle['b'],2))
+        else:
+             
+
+while True:
+    set_value()
+    
