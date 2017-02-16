@@ -26,10 +26,10 @@ def tryforint(value):
 
 def set_value():
     while True:
-        which = input(c.clear + "What value? (A,B,C,<A,<C)").lower().strip()
+        which = input(c.clear + c.blue + "What value? (a,b,c,<a,<c)\n" + c.x).lower().strip()
         for i in ['a','b','c','<a','<c']:
             if which == i:
-                value = input(c.clear + 'Input new value of %s\n' % i)
+                value = input(c.clear + c.blue + f'Input new value of {c.red}{i}{c.x}\n').strip().lower()
                 value = tryforint(value)
                 if not value:
                     continue
@@ -37,12 +37,12 @@ def set_value():
                     error('Angle has to be under 90')
                     continue
                 triangle[i] = value
-            else:
-                error("Not an option!")
-                continue
+        if not which in ['a','b','c','<a','<c']:
+            error("Not an option!")
+            continue
         break
 
-def oppandadjofangle(angle):
+def oppadjofangle(angle):
     if angle == '<a':
         return ['b','a']
     elif angle == '<c':
@@ -55,35 +55,100 @@ def solve_triangle():
     angles_unknown = ['<a','<c']
     sides_known = []
     sides_unknown = ['a','b','c']
-    for key,value in triangle.keys():
+    sides_unknown_loop = ['a','b','c']
+    angles_unknown_loop = ['<a','<c']
+    for key in triangle.keys():
         if key.startswith('<'):
-            if value != 0 or value != 90:
+            if triangle[key] != 0 and triangle[key] != 90:
                 num_angles += 1
                 angles_known.append(key)
                 angles_unknown.remove(key)
+                angles_unknown_loop.remove(key)
         else:
-            if value != 0:
+            if triangle[key] != 0:
                 num_sides += 1
                 sides_known.append(key)
                 sides_unknown.remove(key)
+                sides_unknown_loop.remove(key)
     if num_angles < 1 or num_sides < 1:
         if num_sides < 2:
             error("Need more sides/angles")
             return False
-    if 'c' in sides_known and triangle['a'] > triangle['c'] or triangle['b'] > triangle['c']:
-        error("Side A or B can't be larger than the Hyp(C)")
-        continue
-    if len(angles_known) + len(sides_known) == 5:
-        break
-    for i in sides_unknown:
-        if sides_known == list(sides).remove(i):
+    if sides == sides_known and triangle['a'] + triangle['b'] < triangle['c']:
+        error("Side A + B can't be less than the Hyp(C)")
+        return False
+    if len(angles_known) + len(sides_known) == 4:
+        error("More than 4 sides and or angles are set")
+        return False
+    for i in sides_unknown_loop:
+        if len(sides_known) == 2:
             if 'c' in sides_known:
-                triangle[i] = math.sqrt(math.pow(triangle['c'],2)-math.pow(triangle[list(sides_known.remove('c').pop(0))],2)
+                if 'a' in sides_known:
+                    triangle[i] = math.sqrt(math.pow(triangle['c'],2)-math.pow(triangle['a'],2))
+                elif 'b' in sides_known:
+                    triangle[i] = math.sqrt(math.pow(triangle['c'],2)-math.pow(triangle['b'],2))
+                sides_known.append(i)
+                sides_unknown.remove(i)
             else:
                 triangle[i] = math.sqrt(math.pow(triangle['a'],2)+math.pow(triangle['b'],2))
+                print('test')
+                sides_known.append(i)
+                sides_unknown.remove(i)
         else:
-             
+            working_angle = angles_known[0]
+            angle_oppadj = oppadjofangle(working_angle)
+            if 'c' in sides_known: 
+                if i == angle_oppadj[0]:
+                    triangle[i] = math.sin(math.radians(triangle[working_angle]))*triangle['c']
+                    sides_known.append(i)
+                    sides_unknown.remove(i)
+                elif i == angle_oppadj[1]:
+                    triangle[i] = math.cos(math.radians(triangle[working_angle]))*triangle['c']
+                    sides_known.append(i)
+                    sides_unknown.remove(i)
+            else:
+                if i == angle_oppadj[0]:
+                    triangle[i] = math.tan(math.radians(triangle[working_angle]))*triangle[angle_oppadj[1]]
+                    sides_known.append(i)
+                    sides_unknown.remove(i)
+                elif i == angle_oppadj[1]:
+                    triangle[i] = math.tan(math.radians(triangle[working_angle]))*triangle[angle_oppadj[0]]
+                    sides_known.append(i)
+                    sides_unknown.remove(i)
+    print(angles_unknown_loop)
+    for i in angles_unknown_loop:
+        if len(angles_unknown) == 1:
+            triangle[i] = 90-triangle[angles_known[0]]
+            angles_unknown.remove(i)
+            angles_known.append(i)
+        else:
+            if i == '<a':
+                triangle[i] = math.degrees(math.atan2(triangle['b'],triangle['a']))
+                angles_unknown.remove(i)
+                angles_known.append(i)
+            elif i == '<b':
+                triangle[i] = math.degrees(math.atan2(triangle['a'],triangle['b']))
+                angles_unknown.remove(i)
+                angles_known.append(i)
 
 while True:
-    set_value()
+    text = input(c.clear + c.blue + f'''Side A:{c.red}{triangle['a']}{c.blue}
+Side B:{c.red}{triangle['b']}{c.blue}
+Side C:{c.red}{triangle['c']}{c.blue}
+Angle A:{c.red}{triangle['<a']}{c.blue}
+Angle C:{c.red}{triangle['<c']}{c.blue}
+Type:{c.magenta}set{c.blue},{c.red}clear{c.blue},{c.green}solve{c.blue}:
+''' + c.x).strip().lower()
+    if text == 'set':
+        set_value()
+    elif text == 'solve':
+        solve_triangle()
+    elif text == 'clear':
+        triangle = {'a': 0,
+                'b': 0,
+                'c': 0,
+                '<a': 0,
+                '<b': 90,
+                '<c': 0
+        }
     
