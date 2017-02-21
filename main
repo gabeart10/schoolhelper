@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import skilstak.colors as c
+import termbox 
 import math
 
 triangle = {'a': 0,
@@ -12,6 +13,8 @@ triangle = {'a': 0,
 
 angles = ['<a','<c']
 sides = ['a','b','c']
+angles_sides = ['<a','<c','a','b','c']
+
 
 def error(message):
     input(c.red + "ERROR:" + message + c.x)
@@ -80,6 +83,12 @@ def solve_triangle():
     if len(angles_known) + len(sides_known) == 4:
         error("More than 4 sides and or angles are set")
         return False
+    if sides == sides_known and math.pow(triangle['a'],2)+math.pow(triangle['b'],2) != math.pow(triangle['c'],2):
+        error("Sides don't follow A^2+B^2=C^2")
+        return False
+    if triangle['<a'] + triangle['<c'] > 90:
+        error("Angles A + C > 90")
+        return False
     for i in sides_unknown_loop:
         if len(sides_known) == 2:
             if 'c' in sides_known:
@@ -131,13 +140,59 @@ def solve_triangle():
                 angles_unknown.remove(i)
                 angles_known.append(i)
 
+def print_centered(screen,message):
+    w = screen.width()
+    h = screen.height()
+    lines = []
+    for i in message.splitlines():
+        lines.append(i)
+    largest = [0,0]
+    for i in lines:
+        if len(i) > largest[1]:
+            largest = [lines.index(i),len(i)]
+    start_x = round(w/2,0)-round(largest[1]/2,0)
+    start_y = round(h/2,0)-round(len(lines)/2,0)
+    for i in lines:
+        t = 0
+        while t < len(i):
+            screen.change_cell(start_x+t,start_y+lines.index(i),ord(i[t]),termbox.BLUE,termbox.DEFAULT)
+            t += 1
+    screen.present()
+
+def display_triangle():
+    t = termbox.Termbox()
+    triangle_text = f'''
+<A|\\
+  | \\
+  |  \\
+ A|   \\C 
+  |    \\
+  |     \\
+  |______\\<C
+     B 
+
+   <A:{triangle['<a']}
+   <C:{triangle['<c']}
+    A:{triangle['a']}
+    B:{triangle['b']}
+    C:{triangle['c']}
+    '''
+    event = [0,0,0]
+    while event[2] != termbox.KEY_ENTER:
+        t.clear()
+        event = t.peek_event(1)
+        if event == None:
+            event = [0,0,0]
+        print_centered(t,triangle_text)
+    t.close()
+
 while True:
     text = input(c.clear + c.blue + f'''Side A:{c.red}{triangle['a']}{c.blue}
 Side B:{c.red}{triangle['b']}{c.blue}
 Side C:{c.red}{triangle['c']}{c.blue}
 Angle A:{c.red}{triangle['<a']}{c.blue}
 Angle C:{c.red}{triangle['<c']}{c.blue}
-Type:{c.magenta}set{c.blue},{c.red}clear{c.blue},{c.green}solve{c.blue}:
+Type:{c.magenta}set{c.blue},{c.red}clear{c.blue},{c.green}solve{c.blue},{c.yellow}display{c.blue}:
 ''' + c.x).strip().lower()
     if text == 'set':
         set_value()
@@ -151,4 +206,5 @@ Type:{c.magenta}set{c.blue},{c.red}clear{c.blue},{c.green}solve{c.blue}:
                 '<b': 90,
                 '<c': 0
         }
-    
+    elif text == 'display':
+        display_triangle()
