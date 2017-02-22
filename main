@@ -24,8 +24,12 @@ def tryforint(value):
         value = int(value)
         return value
     except ValueError:
-        error("Not a number")
-        return False
+        try:
+            value = float(value)
+            return value
+        except ValueError:
+            error("Not a number")
+            return False
 
 def set_value():
     while True:
@@ -162,20 +166,20 @@ def print_centered(screen,message):
 def display_triangle():
     t = termbox.Termbox()
     triangle_text = f'''
-<A|\\
+{c.red}<A{c.blue}|\\
   | \\
   |  \\
- A|   \\C 
+ {c.red}A{c.blue}|   \\{c.red}C{c.blue}
   |    \\
   |     \\
-  |______\\<C
-     B 
+  |______\\{c.red}<C{c.blue}
+     {c.red}B{c.blue}
 
-   <A:{triangle['<a']}
-   <C:{triangle['<c']}
-    A:{triangle['a']}
-    B:{triangle['b']}
-    C:{triangle['c']}
+   <A:{c.red}{triangle['<a']}{c.blue}
+   <C:{c.red}{triangle['<c']}{c.blue}
+    A:{c.red}{triangle['a']}{c.blue}
+    B:{c.red}{triangle['b']}{c.blue}
+    C:{c.red}{triangle['c']}{c.blue}
     '''
     event = [0,0,0]
     while event[2] != termbox.KEY_ENTER:
