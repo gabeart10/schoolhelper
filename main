@@ -2,6 +2,7 @@
 import skilstak.colors as c
 import termbox 
 import math
+import re
 
 triangle = {'a': 0,
         'b': 0,
@@ -147,13 +148,15 @@ def solve_triangle():
 def print_centered(screen,message):
     w = screen.width()
     h = screen.height()
+    ansi_remove = re.compile(r'\x1b[^m]*m')
     lines = []
     for i in message.splitlines():
         lines.append(i)
     largest = [0,0]
     for i in lines:
-        if len(i) > largest[1]:
-            largest = [lines.index(i),len(i)]
+        i_len = ansi_remove.sub('', i)
+        if len(i_len) > largest[1]:
+            largest = [lines.index(i),len(i_len)]
     start_x = round(w/2,0)-round(largest[1]/2,0)
     start_y = round(h/2,0)-round(len(lines)/2,0)
     for i in lines:
