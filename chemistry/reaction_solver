@@ -244,7 +244,7 @@ def parce_reaction(reaction):
                         n += 1
                 except IndexError:
                     pass
-                if int(element_num):
+                if not int(element_num):
                     element_num = 1
                 else:
                     element_num = int(element_num)
@@ -264,24 +264,30 @@ def parce_reaction(reaction):
             elif symbol == '(':
                 in_pren = True
                 n = 1
-                while compound[0][i+t] != ')':
+                while compound[0][i+n] != ')':
                     n += 1
                 n += 1
-                while find_int(compound[0][i+n]):
-                    pren_num += compound[0][i+n]
-                    n += 1
+                try:
+                    while find_int(compound[0][i+n]):
+                        pren_num += compound[0][i+n]
+                        n += 1
+                except IndexError:
+                    pass
                 if int(pren_num):
                     pren_num = 1
                 else:
                     pren_num = int(pren_num)
-                i += n
+                i += 1
             elif symbol == ')':
                 in_pren = False
                 pren_num = '0'
                 i += 1
-            else:
-                error("Invalid symbol detected")
-                return False
+            else: 
+                if find_int(symbol):
+                    i += 1
+                else:
+                    error("Invalid symbol detected")
+                    return False
     for compound in product_compounds:
         i = 0
         pren_num = '0'
@@ -307,10 +313,11 @@ def parce_reaction(reaction):
                         n += 1
                 except IndexError:
                     pass
-                if int(element_num):
+                if not int(element_num):
                     element_num = 1
                 else:
                     element_num = int(element_num)
+                print(pren_num)
                 if in_pren:
                     element_num *= pren_num * compound[1]
                 else:
@@ -327,24 +334,32 @@ def parce_reaction(reaction):
             elif symbol == '(':
                 in_pren = True
                 n = 1
-                while compound[0][i+t] != ')':
+                while compound[0][i+n] != ')':
                     n += 1
                 n += 1
-                while find_int(compound[0][i+n]):
-                    pren_num += compound[0][i+n]
-                    n += 1
+                try:
+                    while find_int(compound[0][i+n]):
+                        pren_num += compound[0][i+n]
+                        n += 1
+                except IndexError:
+                    pass
                 if int(pren_num):
                     pren_num = 1
                 else:
                     pren_num = int(pren_num)
-                i += n
+                i += 1
             elif symbol == ')':
                 in_pren = False
                 pren_num = '0'
                 i += 1
             else:
-                error("Invalid symbol detected")
-                return False
+                if find_int(symbol):
+                    i += 1
+                else:
+                    error("Invalid symbol detected")
+                    return False
+    print(product_compounds)
+    print(reactant_compounds)
     print(product_elements)
     print(reactant_elements)
     input()
