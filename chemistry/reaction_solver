@@ -122,3 +122,232 @@ elements = {
         'Og': ['oganesson','noble gas',118,7,18,294]
 }
 
+def error(error):
+    input(f"{c.red}ERROR:{error}{c.x}")
+
+def find_type(message):
+    try:
+        int(message)
+        return 'atomicnum'
+    except ValueError:
+        if len(message) > 0 and len(message) < 3 and message[0].isupper():
+            return 'symbol'
+        else:
+            return 'name'
+
+def find_int(message):
+    try:
+        int(message)
+        return True
+    except ValueError:
+        return False
+
+def look_up():
+    user_in = input(f"{c.clear}{c.blue}What element?{c.green}(Atomic #,Name,or Symbol){c.blue}\n")
+    user_in_type = find_type(user_in)
+    found = False
+    if user_in_type == 'atomicnum':
+        for (symbol,element) in elements.items():
+            if element[2] == int(user_in):
+                found = symbol
+    elif user_in_type == 'symbol':
+        for (symbol, element) in elements.items():
+            if symbol == user_in:
+                found = symbol
+    elif user_in_type == 'name':
+        for (symbol, element) in elements.items():
+            if element[0] == user_in:
+                found = symbol
+    if not found:
+        return False
+    print(f'''
+{c.clear}{c.blue}Symbol:{c.red}{found}
+{c.blue}Name:{c.red}{elements[found][0]}
+{c.blue}Group:{c.red}{elements[found][1]}
+{c.blue}Atomic #:{c.red}{elements[found][2]}
+{c.blue}Row:{c.red}{elements[found][3]}
+{c.blue}Column:{c.red}{elements[found][4]}
+{c.blue}Atomic Mass:{c.red}{elements[found][5]}''')
+    input()
+
+def format_compound(compound):
+    if int(compound[1]):
+        return [compound[0],int(compound[1])]
+    else:
+        return [compound[0],1]
+
+def parce_reaction(reaction):
+    reaction = reaction.strip()
+    correct_start = False
+    passed_first = False
+    after_arrow = False
+    element_num = '0'
+    current_compound = ['','0']
+    product_elements = []
+    reactant_elements = []
+    product_compounds = []
+    reactant_compounds = []
+    i = 0
+    while i < len(reaction):
+        symbol = reaction[i]
+        if find_int(symbol):
+            if passed_first:
+                current_compound[0] += symbol
+            else:
+                current_compound[1] += symbol 
+            i += 1
+        elif symbol == '+':
+            if after_arrow:
+                product_compounds.append(format_compound(current_compound))
+                current_compound = ['','0']
+                passed_first = False
+            else:
+                reactant_compounds.append(format_compound(current_compound))
+                current_compound = ['','0']
+                passed_first = False
+            i += 1
+        elif symbol == '-' and reaction[i+1] == '>':
+            reactant_compounds.append(format_compound(current_compound))
+            current_compound = ['','0']
+            after_arrow = True
+            passed_first = False
+            i += 2
+        else:
+            if symbol != ' ':
+                current_compound[0] += symbol
+                passed_first = True
+            i += 1
+    product_compounds.append(format_compound(current_compound))
+    current_compound = ['','0']
+    for compound in reactant_compounds:
+        i = 0
+        pren_num = '0'
+        in_pren = False
+        while i < len(compound[0]):
+            symbol = compound[0][i]
+            element_num = '0'
+            found = False
+            if symbol.isupper():
+                try:
+                    if compound[0][i+1].islower():
+                        current_element = symbol + compound[0][i+1]
+                        n = 2
+                    else:
+                        current_element = symbol
+                        n = 1
+                except IndexError:
+                    current_element = symbol
+                    n = 1
+                try:
+                    while find_int(compound[0][i+n]):
+                        element_num += compound[0][i+n]
+                        n += 1
+                except IndexError:
+                    pass
+                if int(element_num):
+                    element_num = 1
+                else:
+                    element_num = int(element_num)
+                if in_pren:
+                    element_num *= pren_num * compound[1]
+                else:
+                    element_num *= compound[1]
+                t = 0
+                while t < len(reactant_elements):
+                    if reactant_elements[t][0] == current_element:
+                        reactant_elements[t][1] += element_num
+                        found = True
+                    t += 1
+                if not found:
+                    reactant_elements.append([current_element,element_num])
+                i += n
+            elif symbol == '(':
+                in_pren = True
+                n = 1
+                while compound[0][i+t] != ')':
+                    n += 1
+                n += 1
+                while find_int(compound[0][i+n]):
+                    pren_num += compound[0][i+n]
+                    n += 1
+                if int(pren_num):
+                    pren_num = 1
+                else:
+                    pren_num = int(pren_num)
+                i += n
+            elif symbol == ')':
+                in_pren = False
+                pren_num = '0'
+                i += 1
+            else:
+                error("Invalid symbol detected")
+                return False
+    for compound in product_compounds:
+        i = 0
+        pren_num = '0'
+        in_pren = False
+        while i < len(compound[0]):
+            symbol = compound[0][i]
+            element_num = '0'
+            found = False
+            if symbol.isupper():
+                try:
+                    if compound[0][i+1].islower():
+                        current_element = symbol + compound[0][i+1]
+                        n = 2
+                    else:
+                        current_element = symbol
+                        n = 1
+                except IndexError:
+                    current_element = symbol
+                    n = 1
+                try:
+                    while find_int(compound[0][i+n]):
+                        element_num += compound[0][i+n]
+                        n += 1
+                except IndexError:
+                    pass
+                if int(element_num):
+                    element_num = 1
+                else:
+                    element_num = int(element_num)
+                if in_pren:
+                    element_num *= pren_num * compound[1]
+                else:
+                    element_num *= compound[1]
+                t = 0
+                while t < len(product_elements):
+                    if product_elements[t][0] == current_element:
+                        product_elements[t][1] += element_num
+                        found = True
+                    t += 1
+                if not found:
+                    product_elements.append([current_element,element_num])
+                i += n
+            elif symbol == '(':
+                in_pren = True
+                n = 1
+                while compound[0][i+t] != ')':
+                    n += 1
+                n += 1
+                while find_int(compound[0][i+n]):
+                    pren_num += compound[0][i+n]
+                    n += 1
+                if int(pren_num):
+                    pren_num = 1
+                else:
+                    pren_num = int(pren_num)
+                i += n
+            elif symbol == ')':
+                in_pren = False
+                pren_num = '0'
+                i += 1
+            else:
+                error("Invalid symbol detected")
+                return False
+    print(product_elements)
+    print(reactant_elements)
+    input()
+
+parce_reaction(input())
+
