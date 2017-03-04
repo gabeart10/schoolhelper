@@ -340,6 +340,7 @@ def parce_reaction(reaction):
                 try:
                     while find_int(compound[0][i+n]):
                         pren_num += compound[0][i+n]
+                        print(pren_num)
                         n += 1
                 except IndexError:
                     pass
