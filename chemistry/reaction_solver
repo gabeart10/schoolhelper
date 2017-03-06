@@ -315,9 +315,10 @@ def parce_reaction(reaction):
                     pass
                 if not int(element_num):
                     element_num = 1
+                    coeff = 1
                 else:
                     element_num = int(element_num)
-                print(pren_num)
+                    coeff = int(element_num)
                 if in_pren:
                     element_num *= pren_num * compound[1]
                 else:
