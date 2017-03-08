@@ -122,6 +122,8 @@ elements = {
         'Og': ['oganesson','noble gas',118,7,18,294]
 }
 
+compound_vars = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
+
 def error(error):
     input(f"{c.red}ERROR:{error}{c.x}")
 
@@ -141,6 +143,13 @@ def find_int(message):
         return True
     except ValueError:
         return False
+
+def find_element(symbol):
+    for (s,e) in elements.items():
+        if symbol == s:
+            return e
+    error(symbol + ' not found')
+    return False
 
 def look_up():
     user_in = input(f"{c.clear}{c.blue}What element?{c.green}(Atomic #,Name,or Symbol){c.blue}\n")
@@ -172,9 +181,9 @@ def look_up():
 
 def format_compound(compound):
     if int(compound[1]):
-        return [compound[0],int(compound[1])]
+        return [compound[0],int(compound[1]),[]]
     else:
-        return [compound[0],1]
+        return [compound[0],1,[]]
 
 def parce_reaction(reaction):
     reaction = reaction.strip()
@@ -246,10 +255,13 @@ def parce_reaction(reaction):
                     pass
                 if not int(element_num):
                     element_num = 1
+                    coeff = 1
                 else:
                     element_num = int(element_num)
+                    coeff = int(element_num)
                 if in_pren:
                     element_num *= pren_num * compound[1]
+                    coeff *= pren_num
                 else:
                     element_num *= compound[1]
                 t = 0
@@ -260,6 +272,7 @@ def parce_reaction(reaction):
                     t += 1
                 if not found:
                     reactant_elements.append([current_element,element_num])
+                compound[2].append([current_element,coeff])
                 i += n
             elif symbol == '(':
                 in_pren = True
@@ -321,6 +334,7 @@ def parce_reaction(reaction):
                     coeff = int(element_num)
                 if in_pren:
                     element_num *= pren_num * compound[1]
+                    coeff *= pren_num
                 else:
                     element_num *= compound[1]
                 t = 0
@@ -331,6 +345,7 @@ def parce_reaction(reaction):
                     t += 1
                 if not found:
                     product_elements.append([current_element,element_num])
+                compound[2].append([current_element,coeff])
                 i += n
             elif symbol == '(':
                 in_pren = True
@@ -359,11 +374,59 @@ def parce_reaction(reaction):
                 else:
                     error("Invalid symbol detected")
                     return False
-    print(product_compounds)
-    print(reactant_compounds)
-    print(product_elements)
-    print(reactant_elements)
-    input()
+    return {
+            'product_c': product_compounds,
+            'reactant_c': reactant_compounds,
+            'product_e': product_elements,
+            'reactant_e': reactant_elements
+    }
 
-parce_reaction(input())
+def balance_reaction(data):
+    balenced_elements = {}
+    element_forms = {}
+    found = False
+    total_true = 0
+    for element in data['product_e']:
+        for i in data['reactant_e']:
+            if element == i:
+                balenced_elements[i[0]] = True
+                total_true += 1
+                found = True
+            elif element[0] == i[0]:
+                balenced_elements[i[0]] = False
+                found = True
+        if not found:
+            error('Elements are not the same on each side')
+            return False
+    if len(balenced_elements) == total_true:
+        return data
+    var_sele = 0
+    for i in data['product_c']:
+        i.append(compound_vars[var_sele])
+        var_sele += 1
+    for i in data['reactant_c']:
+        i.append(compound_vars[var_sele])
+        var_sele += 1
+    for (k,v) in balenced_elements.items():
+        element_forms[k] = [[],[]]
+        for i in data['reactant_c']:
+            for n in i:
+                try:
+                    if n[0] == k:
+                        element_forms[k][0].append([i[-1],n[1]])
+                except TypeError:
+                    pass
+    for (k,v) in balenced_elements.items():
+        element_forms[k] = [[],[]]
+        for i in data['product_c']:
+            for n in i:
+                try:
+                    if n[0] == k:
+                        element_forms[k][1].append([i[-1],n[1]])
+                except TypeError:
+                    pass
+    print(data)
+    input(element_forms)
 
+
+balance_reaction(parce_reaction(input()))            
