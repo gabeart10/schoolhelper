@@ -410,7 +410,7 @@ def balance_reaction(data):
     for (k,v) in balenced_elements.items():
         element_forms[k] = [[],[]]
         for i in data['reactant_c']:
-            for n in i:
+            for n in i[2]:
                 try:
                     if n[0] == k:
                         element_forms[k][0].append([i[-1],n[1]])
@@ -419,7 +419,7 @@ def balance_reaction(data):
     for (k,v) in balenced_elements.items():
         element_forms[k] = [[],[]]
         for i in data['product_c']:
-            for n in i:
+            for n in i[2]:
                 try:
                     if n[0] == k:
                         element_forms[k][1].append([i[-1],n[1]])
