@@ -596,6 +596,67 @@ def unparce_reaction(data):
         reaction += i[0]
     return reaction
 
-parced = balance_reaction(parce_reaction(input()))
-print(find_amount(parced))
-print(unparce_reaction(parced))
+def conv_compound():
+    compound = input(f"{c.clear}{c.blue}What compound?{c.x}\n")
+    compound_amount = float(input(f"{c.clear}{c.blue}How much?{c.x}\n"))
+    compound_unit = input(f"{c.clear}{c.blue}Compound unit?(l,mol,g){c.x}\n").strip().lower()
+    output_unit = input(f"{c.clear}{c.blue}Output unit?(l,mol,g){c.x}\n").strip().lower()
+    data = parce_reaction(compound)
+    if compound_unit == 'l':
+        number = compound_amount/22.4
+    elif compound_unit == 'mol':
+        number = compound_amount
+    elif compound_unit == 'g':
+        number = compound_amount/find_comp_weight(data,compound)
+    else:
+        error('Unit not found!')
+        return False
+    if output_unit == 'l':
+        return [compound,number * 22.4,output_unit,compound_amount,compound_unit]
+    elif output_unit == 'mol':
+        return [compound,number,output_unit,compound_amount,compound_unit]
+    elif output_unit == 'g':
+        return [compound,number * find_comp_weight(data,compound),output_unit,compound_amount,compound_unit]
+    else:
+        error('Unit not found!')
+        return False
+
+parced = None
+unparced = ''
+
+while True:
+    user_in = input(f'''{c.clear}{c.blue}Current reaction:{c.red}{unparced}{c.blue}
+What would you like to do?
+({c.yellow}setr{c.blue},{c.red}convc{c.blue},{c.green}yieldr{c.blue},{c.magenta}balencec{c.blue}){c.x}
+''').strip().lower()
+    if user_in == 'setr':
+        reaction = input(f"{c.clear}{c.blue}What is the reaction?{c.x}\n")
+        parced = parce_reaction(reaction)
+        if not parced:
+            parced = ''
+            continue
+        unparced = unparce_reaction(parced)
+    elif user_in == 'convc':
+        comp_data = conv_compound()
+        if not comp_data:
+            continue
+        input(f"{c.clear}{c.red}{comp_data[1]}{c.blue} {comp_data[2]} of {comp_data[0]}\n=\n{c.red}{comp_data[3]} {c.blue}{comp_data[4]} of {comp_data[0]}")
+    elif user_in == 'yieldr':
+        if not parced:
+            continue
+        parced = balance_reaction(parced)
+        if not parced:
+            continue
+        unparced = unparce_reaction(parced)
+        yield_data = find_amount(parced)
+        input(f"{c.clear}{c.red}{yield_data[1]}{c.blue} {yield_data[2]} of {yield_data[0]}")
+    elif user_in == 'balencec':
+        if not parced:
+            continue
+        parced = balance_reaction(parced)
+        if not parced:
+            continue
+        unparced = unparce_reaction(parced)
+    else:
+        error('Command not found!')
+
