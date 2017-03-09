@@ -587,12 +587,12 @@ def unparce_reaction(data):
             reaction += ' + '
     reaction += ' ->'
     for i in data['product_c']:
+        if len(data['product_c']) == 1 or i == data['product_c'][0]:
+            reaction += ' '
+        else:
+            reaction += ' + '
         if i[1] != 1:
             reaction += str(i[1])
-        if len(data['product_c']) == 1:
-            reaction += ' '
-        elif i != data['product_c'][-1]:
-            reaction += ' + '
         reaction += i[0]
     return reaction
 
