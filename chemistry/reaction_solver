@@ -627,7 +627,7 @@ unparced = ''
 while True:
     user_in = input(f'''{c.clear}{c.blue}Current reaction:{c.red}{unparced}{c.blue}
 What would you like to do?
-({c.yellow}setr{c.blue},{c.red}convc{c.blue},{c.green}yieldr{c.blue},{c.magenta}balencec{c.blue}){c.x}
+({c.yellow}setr{c.blue},{c.red}convc{c.blue},{c.green}yieldr{c.blue},{c.magenta}balencec{c.blue},{c.orange}finde{c.blue}){c.x}
 ''').strip().lower()
     if user_in == 'setr':
         reaction = input(f"{c.clear}{c.blue}What is the reaction?{c.x}\n")
@@ -657,6 +657,8 @@ What would you like to do?
         if not parced:
             continue
         unparced = unparce_reaction(parced)
+    elif user_in == 'finde':
+        look_up()
     else:
         error('Command not found!')
 
