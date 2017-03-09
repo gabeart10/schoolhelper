@@ -141,8 +141,12 @@ def find_int(message):
     try:
         int(message)
         return True
-    except ValueError:
-        return False
+    except (ValueError,TypeError):
+        try:
+            float(message)
+            return True
+        except (ValueError,TypeError):
+            return False
 
 def find_element(symbol):
     for (s,e) in elements.items():
@@ -381,6 +385,56 @@ def parce_reaction(reaction):
             'reactant_e': reactant_elements
     }
 
+def update_solved(data,variabl):
+    for (k,v) in data.items():
+        unfound = 0
+        for i in v[0]:
+            if not variabl[i[0]]:
+                unfound += 1
+        for i in v[1]:
+            if not variabl[i[0]]:
+                unfound += 1
+        data[k].remove(data[k][-1])
+        data[k].append(unfound)
+    return data
+
+def solve_alg(data,variabl):
+    alg_vars = {'a': 1}
+    vars_done = 1
+    for i in variabl:
+        if i != 'a':
+            alg_vars[i] = False
+    while vars_done < len(alg_vars):
+        data = update_solved(data, alg_vars)
+        for (k,i) in data.items():
+            if i[2] == 1:
+                sides = [[],[]]
+                num = 0
+                for n in i[0]:
+                    if not alg_vars[n[0]]:
+                        sides[0].append([n[0],n[1]])
+                    else:
+                        num += alg_vars[n[0]] * n[1]
+                sides[0].append(num)
+                num = 0
+                for n in i[1]:
+                    if not alg_vars[n[0]]:
+                        sides[1].append([n[0],n[1]])
+                    else:
+                        num += alg_vars[n[0]] * n[1]
+                sides[1].append(num)
+                if not find_int(sides[0][0]):
+                    num = sides[1][0] - sides[0][-1]
+                    num /= sides[0][0][1]
+                    alg_vars[sides[0][0][0]] = num
+                elif not find_int(sides[1][0]):
+                    num = sides[0][0] - sides[1][-1]
+                    num /= sides[1][0][1]
+                    alg_vars[sides[1][0][0]] = num
+                vars_done += 1
+    return alg_vars
+
+
 def balance_reaction(data):
     balenced_elements = {}
     element_forms = {}
@@ -390,10 +444,12 @@ def balance_reaction(data):
         for i in data['reactant_e']:
             if element == i:
                 balenced_elements[i[0]] = True
+                element_forms[i[0]] = [[],[]]
                 total_true += 1
                 found = True
             elif element[0] == i[0]:
                 balenced_elements[i[0]] = False
+                element_forms[i[0]] = [[],[]]
                 found = True
         if not found:
             error('Elements are not the same on each side')
@@ -401,32 +457,143 @@ def balance_reaction(data):
     if len(balenced_elements) == total_true:
         return data
     var_sele = 0
-    for i in data['product_c']:
-        i.append(compound_vars[var_sele])
-        var_sele += 1
     for i in data['reactant_c']:
         i.append(compound_vars[var_sele])
         var_sele += 1
+    for i in data['product_c']:
+        i.append(compound_vars[var_sele])
+        var_sele += 1
+    alg_vars = []
     for (k,v) in balenced_elements.items():
-        element_forms[k] = [[],[]]
+        not_found = 0
         for i in data['reactant_c']:
             for n in i[2]:
                 try:
                     if n[0] == k:
                         element_forms[k][0].append([i[-1],n[1]])
+                        if i[-1] != 'a':
+                            not_found += 1
+                        if not i[-1] in alg_vars:
+                            alg_vars.append(i[-1])
                 except TypeError:
                     pass
+        element_forms[k].append(not_found)
     for (k,v) in balenced_elements.items():
-        element_forms[k] = [[],[]]
+        not_found = 0
         for i in data['product_c']:
             for n in i[2]:
                 try:
                     if n[0] == k:
                         element_forms[k][1].append([i[-1],n[1]])
+                        if i[-1] != 'a':
+                            not_found += 1
+                        if not i[-1] in alg_vars:
+                            alg_vars.append(i[-1])
                 except TypeError:
                     pass
-    print(data)
-    input(element_forms)
+        ele_num = element_forms[k].pop(-1)
+        element_forms[k].append(not_found + ele_num)
+    alg_vars = solve_alg(element_forms,alg_vars)
+    i = 0
+    while i < len(data['reactant_c']):
+        data['reactant_c'][i][1] = alg_vars[data['reactant_c'][i][-1]]
+        i += 1
+    i = 0
+    while i < len(data['product_c']):
+        data['product_c'][i][1] = alg_vars[data['product_c'][i][-1]]
+        i += 1
+    return data
 
+def conv_str(string):
+    try:
+        return int(string)
+    except TypeError:
+        return float(string)
 
-balance_reaction(parce_reaction(input()))            
+def find_comp_weight(data,comp):
+    weight = 0
+    for i in data['reactant_c']:
+        if i[0] == comp:
+            for n in i[2]:
+                element = find_element(n[0])
+                if not element:
+                    return False
+                weight += element[5] * n[1]    
+            return weight
+    for i in data['product_c']:
+        if i[0] == comp:
+            for n in i[2]:
+                element = find_element(n[0])
+                if not element:
+                    return False
+                weight += element[5] * n[1]    
+            return weight
+
+def in_data(data,comp):
+    for i in data['reactant_c']:
+        if i[0] == comp:
+            return True
+    for i in data['product_c']:
+        if i[0] == comp:
+            return True
+    error('Compound not in reaction!')
+    return False
+
+def in_data_more(data,comp,side):
+    if side == 'r':
+        for i in data['reactant_c']:
+            if i[0] == comp:
+                return i
+    elif side == 'p':
+        for i in data['product_c']:
+            if i[0] == comp:
+                return i
+    error('Compound not found on side or side not found!')
+    return False
+
+def find_amount(data):
+    given_compound = input(f"{c.clear}{c.blue}What is the given compound?{c.x}\n").strip()
+    if not in_data(data,given_compound):
+        return False
+    given_side = input(f"{c.clear}{c.blue}What side is it on?(r or p){c.x}\n").strip().lower()
+    amount_given = input(f"{c.clear}{c.blue}How much of given element?(mol or g){c.x}\n").strip().lower()
+    if 'mol' in amount_given:
+        amount_given = amount_given.replace('mol','')
+    elif 'g' in amount_given:
+        amount_given = conv_str(amount_given.replace('g',''))/find_comp_weight(data,given_compound)
+    else:
+        error('Unit not found!')
+        return False
+    output_compound = input(f"{c.clear}{c.blue}What is the output compound?{c.x}\n")
+    if not in_data(data,output_compound):
+        return False
+    output_side = input(f"{c.clear}{c.blue}What side is it on?(r or p){c.x}\n").strip().lower()
+    output_unit = input(f"{c.clear}{c.blue}What unit do you want the output to be?(mol or g){c.x}\n").strip().lower()
+    given_data = in_data_more(data,given_compound,given_side) 
+    output_data = in_data_more(data,output_compound,output_side)
+    amount = given_data[1]/output_data[1]*float(amount_given)
+    if output_unit == 'g':
+        amount *= find_comp_weight(data,output_compound)
+    return [output_compound,amount,output_unit]
+
+def unparce_reaction(data):
+    reaction = ''
+    for i in data['reactant_c']:
+        if i[1] != 1:
+            reaction += str(i[1])
+        reaction += i[0]
+        if i != data['reactant_c'][-1]:
+            reaction += ' + '
+    reaction += ' ->'
+    for i in data['product_c']:
+        if i[1] != 1:
+            reaction += str(i[1])
+        if i != data['product_c'][-1]:
+            reaction += ' + '
+        if len(data['product_c']) == 1:
+            reaction += ' '
+        reaction += i[0]
+    return reaction
+
+parced = balance_reaction(parce_reaction(input()))
+print(find_amount(parced))
