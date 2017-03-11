@@ -507,7 +507,7 @@ def balance_reaction(data):
 def conv_str(string):
     try:
         return int(string)
-    except TypeError:
+    except ValueError:
         return float(string)
 
 def find_comp_weight(data,comp):
@@ -627,7 +627,7 @@ unparced = ''
 while True:
     user_in = input(f'''{c.clear}{c.blue}Current reaction:{c.red}{unparced}{c.blue}
 What would you like to do?
-({c.yellow}setr{c.blue},{c.red}convc{c.blue},{c.green}yieldr{c.blue},{c.magenta}balencec{c.blue},{c.orange}finde{c.blue}){c.x}
+({c.yellow}setr{c.blue},{c.red}convc{c.blue},{c.green}yieldr{c.blue},{c.magenta}balencer{c.blue},{c.orange}finde{c.blue}){c.x}
 ''').strip().lower()
     if user_in == 'setr':
         reaction = input(f"{c.clear}{c.blue}What is the reaction?{c.x}\n")
@@ -650,7 +650,7 @@ What would you like to do?
         unparced = unparce_reaction(parced)
         yield_data = find_amount(parced)
         input(f"{c.clear}{c.red}{yield_data[1]}{c.blue} {yield_data[2]} of {yield_data[0]}")
-    elif user_in == 'balencec':
+    elif user_in == 'balencer':
         if not parced:
             continue
         parced = balance_reaction(parced)
